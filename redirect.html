@@ -69,6 +69,13 @@ button{
 .start:hover{
      background:#e0e4df;
  }
+.forestOnlyStart{
+     margin-top:10px;
+     background:#24392b;
+     color:#edf3ed;
+     border-color:#55705e;
+}
+.forestOnlyStart:hover{background:#31503b;}
 .controlsHint{
      margin-top:20px;
      color:#7e8880;
@@ -1437,7 +1444,7 @@ select{
     <div class="menuLeft">
          <h1 class="title">OUTBREAK</h1>
          <div class="subtitle">SURVIVE THE COLLAPSE</div>
-        <button class="start" onclick="startGame()">PLAY</button>
+        <button class="start" onclick="startGame()">PLAY STORY</button>
         <div class="storyNote"></div>
         <div class="storyLoadSlots">
             <button type="button" id="storyLoad1" class="storySlotLoad" onclick="openStorySlotMenu(1)">EMPTY</button>
@@ -1749,19 +1756,19 @@ const characters={
     maya:{
          name:"Maya",
          health:100,
-         speed:5.2,
+         speed:8.0,
          power:1,
          radius:18,
         shirt:"#6e1823",
          pants:"#25272a",
          hair:"#241b1a",
-         eyes:"#5a3824",
+         eyes:"#c98a27",
         female:true
      },
     marcus:{
          name:"Marcus",
          health:100,
-         speed:5.2,
+         speed:8.0,
          power:1,
          radius:18,
         shirt:"#245b91",
@@ -1773,7 +1780,7 @@ const characters={
     victor:{
          name:"Victor",
          health:100,
-         speed:5.2,
+         speed:8.0,
          power:1,
          radius:18,
         shirt:"#70503c",
@@ -1899,14 +1906,27 @@ let endingTowerBullets=[];
 let endingTowerLastShot=[-99,-99,-99,-99];
 let endingBarracksLastShot=[-99,-99,-99,-99];
 
-function drawEndingCharacter(name,x,y,r=18){
+function drawEndingCharacter(name,x,y,r=18,smileBoost=0){
     const c=characters[name];
     if(!c) return;
 
     const skin="#c58c70";
-    const tall=name==="maya" ? 0 : name==="marcus" ? -3 : -7;
+    const tall=name==="maya" ? -4 : name==="marcus" ? -3 : -7;
 
     ctx.save();
+
+    // Character-specific ending-scene proportions.
+    if(name==="maya") {
+        /* Make Maya shorter only in the ending cutscene. */
+        ctx.translate(x,y);
+        ctx.scale(.88,1.02);
+        ctx.translate(-x,-y);
+    }else if(name==="marcus") {
+        /* Make Marcus a bit taller only in the ending scene. */
+        ctx.translate(x,y);
+        ctx.scale(.95,1.12);
+        ctx.translate(-x,-y);
+    }
 // Same body language/proportions used by the actual gameplay characters.
     ctx.fillStyle="#0007";
     ctx.beginPath();
@@ -1923,13 +1943,13 @@ function drawEndingCharacter(name,x,y,r=18){
 
     ctx.fillStyle=c.shirt;
     ctx.beginPath();
-    ctx.roundRect(x-r*.78,y-r*.35+tall,r*1.56,r*1.05,4);
+    ctx.roundRect(x-r*.78,y-r*.48+tall,r*1.56,r*1.18,4);
     ctx.fill();
 
     if(name==="victor"){
         ctx.fillStyle="#2f2a27";
         ctx.beginPath();
-        ctx.moveTo(x-r*.78,y-r*.32+tall);
+        ctx.moveTo(x-r*.78,y-r*.45+tall);
         ctx.lineTo(x-r*.20,y-r*.08+tall);
         ctx.lineTo(x-r*.24,y+r*.68+tall);
         ctx.lineTo(x-r*.78,y+r*.68+tall);
@@ -1937,7 +1957,7 @@ function drawEndingCharacter(name,x,y,r=18){
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(x+r*.78,y-r*.32+tall);
+        ctx.moveTo(x+r*.78,y-r*.45+tall);
         ctx.lineTo(x+r*.20,y-r*.08+tall);
         ctx.lineTo(x+r*.24,y+r*.68+tall);
         ctx.lineTo(x+r*.78,y+r*.68+tall);
@@ -1946,14 +1966,21 @@ function drawEndingCharacter(name,x,y,r=18){
     }
 
     ctx.fillStyle=name==="victor" ? "#2f2a27" : c.shirt;
-    ctx.fillRect(x-r*1.04,y-r*.25+tall,r*.34,r*1.05);
-    ctx.fillRect(x+r*.70,y-r*.25+tall,r*.34,r*1.05);
+    ctx.fillRect(x-r*1.04,y-r*.38+tall,r*.34,r*1.18);
+    ctx.fillRect(x+r*.70,y-r*.38+tall,r*.34,r*1.18);
 
     ctx.fillStyle=skin;
     ctx.beginPath();
     ctx.arc(x-r*.87,y+r*.83+tall,r*.2,0,Math.PI*2);
     ctx.arc(x+r*.87,y+r*.83+tall,r*.2,0,Math.PI*2);
     ctx.fill();
+
+    if(name==="maya"){
+        ctx.save();
+        ctx.translate(x,y-r*1.18+tall);
+        ctx.scale(1.08,.88);
+        ctx.translate(-x,-(y-r*1.18+tall));
+    }
 
     ctx.fillRect(x-r*.23,y-r*.88+tall,r*.46,r*.4);
 
@@ -1968,19 +1995,71 @@ function drawEndingCharacter(name,x,y,r=18){
 
     ctx.fillStyle=c.hair;
     if(c.female){
-        ctx.beginPath();
-        ctx.moveTo(x-r*.68,y-r*1.40+tall);
-        ctx.quadraticCurveTo(x-r*.72,y-r*1.92+tall,x-r*.20,y-r*2.08+tall);
-        ctx.quadraticCurveTo(x+r*.18,y-r*2.20+tall,x+r*.60,y-r*1.90+tall);
-        ctx.quadraticCurveTo(x+r*.72,y-r*1.55+tall,x+r*.58,y-r*.72+tall);
-        ctx.lineTo(x+r*.30,y-r*.48+tall);
-        ctx.quadraticCurveTo(x+r*.42,y-r*1.10+tall,x+r*.28,y-r*1.55+tall);
-        ctx.quadraticCurveTo(x,y-r*1.72+tall,x-r*.28,y-r*1.57+tall);
-        ctx.quadraticCurveTo(x-r*.42,y-r*1.08+tall,x-r*.30,y-r*.46+tall);
-        ctx.lineTo(x-r*.58,y-r*.70+tall);
-        ctx.quadraticCurveTo(x-r*.72,y-r*1.08+tall,x-r*.68,y-r*1.40+tall);
-        ctx.closePath();
-        ctx.fill();
+        if(name==="maya"){
+            /* Exact Forest gameplay Maya messy hair. */
+            ctx.beginPath();
+            ctx.moveTo(x-r*.66,y-r*1.38+tall);
+            ctx.quadraticCurveTo(x-r*.78,y-r*1.90+tall,x-r*.42,y-r*2.08+tall);
+            ctx.quadraticCurveTo(x-r*.08,y-r*2.22+tall,x+r*.22,y-r*2.10+tall);
+            ctx.quadraticCurveTo(x+r*.50,y-r*2.02+tall,x+r*.66,y-r*1.72+tall);
+            ctx.quadraticCurveTo(x+r*.78,y-r*1.46+tall,x+r*.62,y-r*.66+tall);
+            ctx.quadraticCurveTo(x+r*.46,y-r*.28+tall,x+r*.18,y-r*.68+tall);
+            ctx.quadraticCurveTo(x+r*.34,y-r*.98+tall,x+r*.10,y-r*1.24+tall);
+            ctx.quadraticCurveTo(x-r*.04,y-r*1.40+tall,x-r*.20,y-r*1.22+tall);
+            ctx.quadraticCurveTo(x-r*.40,y-r*.98+tall,x-r*.24,y-r*.68+tall);
+            ctx.quadraticCurveTo(x-r*.50,y-r*.30+tall,x-r*.64,y-r*.70+tall);
+            ctx.quadraticCurveTo(x-r*.80,y-r*1.08+tall,x-r*.66,y-r*1.38+tall);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x-r*.26,y-r*2.02+tall);
+            ctx.lineTo(x-r*.16,y-r*2.18+tall);
+            ctx.lineTo(x-r*.04,y-r*2.02+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x+r*.04,y-r*2.04+tall);
+            ctx.lineTo(x+r*.16,y-r*2.19+tall);
+            ctx.lineTo(x+r*.28,y-r*2.00+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x-r*.64,y-r*.86+tall);
+            ctx.lineTo(x-r*.82,y-r*.66+tall);
+            ctx.lineTo(x-r*.58,y-r*.58+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x+r*.64,y-r*.90+tall);
+            ctx.lineTo(x+r*.82,y-r*.70+tall);
+            ctx.lineTo(x+r*.58,y-r*.60+tall);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle="rgba(255,255,255,.10)";
+            ctx.lineWidth=1.2;
+            ctx.beginPath();
+            ctx.moveTo(x-r*.34,y-r*1.92+tall);
+            ctx.quadraticCurveTo(x-r*.22,y-r*1.58+tall,x-r*.30,y-r*.78+tall);
+            ctx.moveTo(x+r*.18,y-r*1.94+tall);
+            ctx.quadraticCurveTo(x+r*.38,y-r*1.52+tall,x+r*.28,y-r*.74+tall);
+            ctx.stroke();
+        }else{
+            ctx.beginPath();
+            ctx.moveTo(x-r*.68,y-r*1.40+tall);
+            ctx.quadraticCurveTo(x-r*.72,y-r*1.92+tall,x-r*.20,y-r*2.08+tall);
+            ctx.quadraticCurveTo(x+r*.18,y-r*2.20+tall,x+r*.60,y-r*1.90+tall);
+            ctx.quadraticCurveTo(x+r*.72,y-r*1.55+tall,x+r*.58,y-r*.72+tall);
+            ctx.lineTo(x+r*.30,y-r*.48+tall);
+            ctx.quadraticCurveTo(x+r*.42,y-r*1.10+tall,x+r*.28,y-r*1.55+tall);
+            ctx.quadraticCurveTo(x,y-r*1.72+tall,x-r*.28,y-r*1.57+tall);
+            ctx.quadraticCurveTo(x-r*.42,y-r*1.08+tall,x-r*.30,y-r*.46+tall);
+            ctx.lineTo(x-r*.58,y-r*.70+tall);
+            ctx.quadraticCurveTo(x-r*.72,y-r*1.08+tall,x-r*.68,y-r*1.40+tall);
+            ctx.closePath();
+            ctx.fill();
+        }
     }else{
         ctx.beginPath();
         ctx.moveTo(x-r*.6,y-r*1.45+tall);
@@ -1993,40 +2072,142 @@ function drawEndingCharacter(name,x,y,r=18){
         ctx.fill();
     }
 
-    // Eye whites / iris color from the gameplay character palette.
-    ctx.fillStyle=c.eyes;
-    ctx.beginPath();
-    ctx.ellipse(x-r*.27,y-r*1.39+tall,3.4,2.5,0,0,Math.PI*2);
-    ctx.ellipse(x+r*.15,y-r*1.39+tall,3.4,2.5,0,0,Math.PI*2);
-    ctx.fill();
+    if(name==="maya"){
+        /* Keep Maya's ending eyes fully inside the face/head area. */
+        const eyeY=y-r*1.39+tall;
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(x-r*.47,y-r*1.67+tall,r*.94,r*.94,r*.28);
+        ctx.clip();
 
-    // Visible pupils.
-    ctx.fillStyle="#111";
-    ctx.beginPath();
-    ctx.arc(x-r*.25,y-r*1.39+tall,1.25,0,Math.PI*2);
-    ctx.arc(x+r*.17,y-r*1.39+tall,1.25,0,Math.PI*2);
-    ctx.fill();
+        ctx.fillStyle=c.eyes;
+        ctx.beginPath();
+        ctx.ellipse(x-r*.22,eyeY,3.15,2.35,0,0,Math.PI*2);
+        ctx.ellipse(x+r*.10,eyeY,3.15,2.35,0,0,Math.PI*2);
+        ctx.fill();
 
-    // Tiny highlight so the pupils read clearly at game scale.
-    ctx.fillStyle="rgba(255,255,255,.75)";
-    ctx.beginPath();
-    ctx.arc(x-r*.29,y-r*1.43+tall,.45,0,Math.PI*2);
-    ctx.arc(x+r*.13,y-r*1.43+tall,.45,0,Math.PI*2);
-    ctx.fill();
+        ctx.fillStyle="#a96816";
+        ctx.beginPath();
+        ctx.arc(x-r*.22,eyeY,1.65,0,Math.PI*2);
+        ctx.arc(x+r*.10,eyeY,1.65,0,Math.PI*2);
+        ctx.fill();
 
-    // Small, natural smile.
-    ctx.strokeStyle="#6a3432";
-    ctx.lineWidth=Math.max(1.4,r*.075);
-    ctx.lineCap="round";
-    ctx.beginPath();
-    ctx.arc(
-        x-r*.025,
-        y-r*1.00+tall,
-        r*.18,
-        0.12*Math.PI,
-        0.88*Math.PI
-    );
-    ctx.stroke();
+        ctx.fillStyle="#111";
+        ctx.beginPath();
+        ctx.arc(x-r*.22,eyeY,1.48,0,Math.PI*2);
+        ctx.arc(x+r*.10,eyeY,1.48,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.strokeStyle="#3a2923";
+        ctx.lineWidth=1.0;
+        ctx.beginPath();
+        ctx.moveTo(x-r*.38,eyeY-r*.11);
+        ctx.quadraticCurveTo(x-r*.22,eyeY-r*.28,x-r*.06,eyeY-r*.11);
+        ctx.moveTo(x-r*.02,eyeY-r*.11);
+        ctx.quadraticCurveTo(x+r*.10,eyeY-r*.28,x+r*.26,eyeY-r*.11);
+        ctx.stroke();
+
+        ctx.strokeStyle="rgba(120,84,69,.50)";
+        ctx.lineWidth=.75;
+        ctx.beginPath();
+        ctx.moveTo(x-r*.36,eyeY+r*.10);
+        ctx.quadraticCurveTo(x-r*.22,eyeY+r*.20,x-r*.08,eyeY+r*.10);
+        ctx.moveTo(x-r*.00,eyeY+r*.10);
+        ctx.quadraticCurveTo(x+r*.10,eyeY+r*.20,x+r*.24,eyeY+r*.10);
+        ctx.stroke();
+
+        ctx.fillStyle="rgba(255,255,255,.85)";
+        ctx.beginPath();
+        ctx.arc(x-r*.28,eyeY-r*.08,.34,0,Math.PI*2);
+        ctx.arc(x+r*.05,eyeY-r*.08,.34,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.strokeStyle="#362923";
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(x-r*.34,y-r*1.53+tall);
+        ctx.lineTo(x-r*.17,y-r*1.55+tall);
+        ctx.moveTo(x+r*.02,y-r*1.55+tall);
+        ctx.lineTo(x+r*.20,y-r*1.53+tall);
+        ctx.stroke();
+
+        ctx.strokeStyle="#865c4c";
+        ctx.lineWidth=1.5;
+        ctx.beginPath();
+        ctx.moveTo(x,y-r*1.29+tall);
+        ctx.lineTo(x-1,y-r*1.04+tall);
+        ctx.lineTo(x+3,y-r*1.03+tall);
+        ctx.stroke();
+
+        /* Move Maya's mouth a bit farther from the nose in the ending scene. */
+        ctx.strokeStyle="#74413c";
+        ctx.lineWidth=Math.max(1.25,r*.068);
+        ctx.lineCap="round";
+        ctx.beginPath();
+        if(smileBoost){
+            ctx.moveTo(x-r*.19,y-r*.92+tall);
+            ctx.quadraticCurveTo(x,y-r*.72+tall,x+r*.18,y-r*.92+tall);
+        }else{
+            ctx.moveTo(x-r*.17,y-r*.91+tall);
+            ctx.quadraticCurveTo(x,y-r*.78+tall,x+r*.16,y-r*.91+tall);
+        }
+        ctx.stroke();
+    }else{
+        // Existing ending face design for the other characters.
+        ctx.fillStyle=c.eyes;
+        ctx.beginPath();
+        ctx.ellipse(x-r*.27,y-r*1.39+tall,3.4,2.5,0,0,Math.PI*2);
+        ctx.ellipse(x+r*.15,y-r*1.39+tall,3.4,2.5,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#111";
+        ctx.beginPath();
+        ctx.arc(x-r*.25,y-r*1.39+tall,1.25,0,Math.PI*2);
+        ctx.arc(x+r*.17,y-r*1.39+tall,1.25,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="rgba(255,255,255,.75)";
+        ctx.beginPath();
+        ctx.arc(x-r*.29,y-r*1.43+tall,.45,0,Math.PI*2);
+        ctx.arc(x+r*.13,y-r*1.43+tall,.45,0,Math.PI*2);
+        ctx.fill();
+
+        if(name==="victor" || name==="marcus"){
+            /* Add simple noses for Victor and Marcus in the ending scene. */
+            ctx.strokeStyle="#865c4c";
+            ctx.lineWidth=1.35;
+            ctx.beginPath();
+            ctx.moveTo(x,y-r*1.29+tall);
+            ctx.lineTo(x-1,y-r*1.07+tall);
+            ctx.lineTo(x+2,y-r*1.05+tall);
+            ctx.stroke();
+        }
+
+        /* Move Marcus's mouth farther from the nose; keep Victor's as-is. */
+        ctx.strokeStyle="#74413c";
+        ctx.lineWidth=Math.max(1.25,r*.068);
+        ctx.lineCap="round";
+        ctx.beginPath();
+        if(name==="marcus"){
+            if(smileBoost){
+                ctx.moveTo(x-r*.19,y-r*.92+tall);
+                ctx.quadraticCurveTo(x,y-r*.72+tall,x+r*.18,y-r*.92+tall);
+            }else{
+                ctx.moveTo(x-r*.17,y-r*.91+tall);
+                ctx.quadraticCurveTo(x,y-r*.78+tall,x+r*.16,y-r*.91+tall);
+            }
+        }else{
+            if(smileBoost){
+                ctx.moveTo(x-r*.19,y-r*1.00+tall);
+                ctx.quadraticCurveTo(x,y-r*.79+tall,x+r*.18,y-r*1.00+tall);
+            }else{
+                ctx.moveTo(x-r*.17,y-r*.99+tall);
+                ctx.quadraticCurveTo(x,y-r*.84+tall,x+r*.16,y-r*.99+tall);
+            }
+        }
+        ctx.stroke();
+    }
 
     if(c.beard){
         ctx.fillStyle=c.hair;
@@ -2061,19 +2242,23 @@ function drawEndingCharacter(name,x,y,r=18){
         ctx.closePath();
         ctx.fill();
 
-        // Re-draw Victor's smile over the beard so it stays visible.
-        ctx.strokeStyle="#6a3432";
-        ctx.lineWidth=Math.max(1.4,r*.075);
+        // Re-draw Victor's smile over the beard so it stays visible, matching Maya's softer smile style.
+        ctx.strokeStyle="#74413c";
+        ctx.lineWidth=Math.max(1.25,r*.068);
         ctx.lineCap="round";
         ctx.beginPath();
-        ctx.arc(
-            x-r*.025,
-            y-r*1.00+tall,
-            r*.18,
-            0.12*Math.PI,
-            0.88*Math.PI
-        );
+        if(smileBoost){
+            ctx.moveTo(x-r*.19,y-r*1.00+tall);
+            ctx.quadraticCurveTo(x,y-r*.79+tall,x+r*.18,y-r*1.00+tall);
+        }else{
+            ctx.moveTo(x-r*.17,y-r*.99+tall);
+            ctx.quadraticCurveTo(x,y-r*.84+tall,x+r*.16,y-r*.99+tall);
+        }
         ctx.stroke();
+    }
+
+    if(name==="maya"){
+        ctx.restore();
     }
 
     if(name==="marcus"){
@@ -2297,7 +2482,8 @@ function drawEndingZombie(x,y,r=14,phase=0){
 function drawMilitaryNPC(x,y,scale=1,phase=0){
     ctx.save();
     ctx.translate(x,y);
-    ctx.scale(scale,scale);
+    /* Slightly narrower and noticeably taller so soldiers match the main characters better. */
+    ctx.scale(scale*.97,scale*1.14);
 
     // Shadow.
     ctx.fillStyle="rgba(0,0,0,.22)";
@@ -2311,23 +2497,67 @@ function drawMilitaryNPC(x,y,scale=1,phase=0){
     ctx.fillRect(-7,7+shift,5,17);
     ctx.fillRect(2,7-shift,5,17);
 
-    // Uniform torso.
-    ctx.fillStyle="#4c5a49";
+    // Base olive uniform torso.
+    ctx.fillStyle="#566652";
     ctx.beginPath();
     ctx.roundRect(-10,-8,20,22,3);
     ctx.fill();
 
-    // Tactical vest.
-    ctx.fillStyle="#303a31";
-    ctx.fillRect(-8,-5,16,14);
-    ctx.fillStyle="#596458";
-    ctx.fillRect(-6,-2,5,5);
-    ctx.fillRect(1,-2,5,5);
+    // Olive uniform layout pieces: shoulder yoke and side torso panels.
+    ctx.fillStyle="#62725d";
+    ctx.beginPath();
+    ctx.moveTo(-10,-8);
+    ctx.lineTo(10,-8);
+    ctx.lineTo(10,-1);
+    ctx.quadraticCurveTo(6,1,3,2);
+    ctx.lineTo(-3,2);
+    ctx.quadraticCurveTo(-6,1,-10,-1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle="#495747";
+    ctx.fillRect(-10,3,4,10);
+    ctx.fillRect(6,3,4,10);
 
-    // Arms.
-    ctx.fillStyle="#4c5a49";
-    ctx.fillRect(-14,-5,5,19);
-    ctx.fillRect(9,-5,5,19);
+    // Dark center tactical vest laid over the uniform.
+    ctx.fillStyle="#1f2320";
+    ctx.beginPath();
+    ctx.roundRect(-6.5,-2,13,12,2);
+    ctx.fill();
+    ctx.fillStyle="#343a35";
+    ctx.fillRect(-5,-.5,4,4);
+    ctx.fillRect(1,-.5,4,4);
+    ctx.fillRect(-4.5,4.5,9,2.8);
+
+    // Olive waist panel under the vest.
+    ctx.fillStyle="#4e5c4c";
+    ctx.fillRect(-7,9,14,4);
+
+    // Arms: shaped green sleeves with darker upper-arm panels and elbow areas.
+    ctx.fillStyle="#62725d";
+    ctx.beginPath();
+    ctx.roundRect(-14,-5,5,19,2);
+    ctx.roundRect(9,-5,5,19,2);
+    ctx.fill();
+    ctx.fillStyle="#414c3f";
+    ctx.fillRect(-14,-5,5,7);
+    ctx.fillRect(9,-5,5,7);
+    ctx.fillStyle="#556352";
+    ctx.fillRect(-13,5,3,5);
+    ctx.fillRect(10,5,3,5);
+
+    // Uniform seam lines so the green parts have a visible layout.
+    ctx.strokeStyle="rgba(32,38,32,.55)";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(-6,-2); ctx.lineTo(-6,10);
+    ctx.moveTo(6,-2);  ctx.lineTo(6,10);
+    ctx.moveTo(-10,2); ctx.lineTo(10,2);
+    ctx.moveTo(-7,9);  ctx.lineTo(7,9);
+    ctx.moveTo(-11,-1); ctx.lineTo(-9,6);
+    ctx.moveTo(11,-1);  ctx.lineTo(9,6);
+    ctx.moveTo(-11,4); ctx.lineTo(-11,11);
+    ctx.moveTo(11,4);  ctx.lineTo(11,11);
+    ctx.stroke();
 
     // Head.
     ctx.fillStyle="#b9856c";
@@ -2335,18 +2565,18 @@ function drawMilitaryNPC(x,y,scale=1,phase=0){
     ctx.arc(0,-17,8,0,Math.PI*2);
     ctx.fill();
 
-    // Helmet.
+    // Helmet: lifted so it sits above the eyes.
     ctx.fillStyle="#38443a";
     ctx.beginPath();
-    ctx.arc(0,-19,9,Math.PI,Math.PI*2);
+    ctx.arc(0,-21,8.8,Math.PI,Math.PI*2);
     ctx.fill();
-    ctx.fillRect(-9,-19,18,3);
+    ctx.fillRect(-8.8,-21,17.6,2.2);
 
-    // Eyes.
+    // Eyes: more horizontal.
     ctx.fillStyle="#171817";
     ctx.beginPath();
-    ctx.arc(-2.8,-17.5,1,0,Math.PI*2);
-    ctx.arc(2.8,-17.5,1,0,Math.PI*2);
+    ctx.ellipse(-2.8,-17.5,1.8,.72,0,0,Math.PI*2);
+    ctx.ellipse(2.8,-17.5,1.8,.72,0,0,Math.PI*2);
     ctx.fill();
 
     // Neutral mouth.
@@ -2853,14 +3083,14 @@ function drawMilitaryBaseEnding(){
     // MILITARY NPCs — INSIDE BASE, OFF THE ROAD
     // -----------------------------------------------------
     const npcPositions=[
-        {x:W*.085,y:baseTop+baseH*.46,s:0.92,p:0.0},
-        {x:W*.135,y:baseTop+baseH*.50,s:0.90,p:1.1},
-        {x:W*.215,y:baseTop+baseH*.43,s:0.95,p:2.0},
-        {x:W*.285,y:baseTop+baseH*.48,s:0.90,p:2.8},
-        {x:W*.715,y:baseTop+baseH*.48,s:0.90,p:3.6},
-        {x:W*.785,y:baseTop+baseH*.43,s:0.95,p:4.2},
-        {x:W*.865,y:baseTop+baseH*.50,s:0.90,p:5.0},
-        {x:W*.915,y:baseTop+baseH*.46,s:0.92,p:5.8}
+        {x:W*.085,y:baseTop+baseH*.46,s:1.02,p:0.0},
+        {x:W*.135,y:baseTop+baseH*.50,s:1.00,p:1.1},
+        {x:W*.215,y:baseTop+baseH*.43,s:1.05,p:2.0},
+        {x:W*.285,y:baseTop+baseH*.48,s:1.00,p:2.8},
+        {x:W*.715,y:baseTop+baseH*.48,s:1.00,p:3.6},
+        {x:W*.785,y:baseTop+baseH*.43,s:1.05,p:4.2},
+        {x:W*.865,y:baseTop+baseH*.50,s:1.00,p:5.0},
+        {x:W*.915,y:baseTop+baseH*.46,s:1.02,p:5.8}
     ];
 
     for(const n of npcPositions){
@@ -2868,8 +3098,8 @@ function drawMilitaryBaseEnding(){
     }
 
     // Two gate guards just inside the wall, still clear of the road center.
-    drawMilitaryNPC(gateLeft-W*.022,baseTop+baseH*.20,1.02,t*1.8);
-    drawMilitaryNPC(gateRight+W*.022,baseTop+baseH*.20,1.02,t*1.8+1.4);
+    drawMilitaryNPC(gateLeft-W*.022,baseTop+baseH*.20,1.12,t*1.8);
+    drawMilitaryNPC(gateRight+W*.022,baseTop+baseH*.20,1.12,t*1.8+1.4);
 
     // -----------------------------------------------------
     // ONLY ONE MILITARY VEHICLE — ROAD ONLY
@@ -3118,9 +3348,9 @@ function drawMilitaryBaseEnding(){
     // Watch towers are the ONLY source of gunfire in the final scene.
 
     // Survivors move with one shared Y coordinate. No bob, scale change or rotation.
-    drawEndingCharacter("maya",centerX-W*.040,groupY,14);
-    drawEndingCharacter("victor",centerX,groupY,15);
-    drawEndingCharacter("marcus",centerX+W*.040,groupY,14);
+    drawEndingCharacter("maya",centerX-W*.040,groupY,15,1);
+    drawEndingCharacter("victor",centerX,groupY,16,1);
+    drawEndingCharacter("marcus",centerX+W*.040,groupY,15,1);
 
     ctx.fillStyle="rgba(0,0,0,.20)";
     for(const sx of [centerX-W*.040,centerX,centerX+W*.040]){
@@ -3187,6 +3417,7 @@ const STORY_CHAPTERS=[
 ];
 let storyChapterIndex=0;
 let storyChapterTravel=0;
+let forestOnlyMode=false;
 let storyTotalTravel=0;
 let pendingStoryLoad=null;
 let storyTransitioning=false;
@@ -3221,13 +3452,20 @@ function drawCharacterPreview(){
          ?48
          :selectedCharacter==="marcus"
          ?42
-         :36;
+         :32;
     const tall=selectedCharacter==="maya"
-         ?0
+         ?-2
          :selectedCharacter==="marcus"
          ?-6
          :-10;
     const skin="#c58c70";
+
+    if(selectedCharacter==="maya") {
+        pctx.save();
+        pctx.translate(x,108);
+        pctx.scale(.86,.95);
+        pctx.translate(-x,-108);
+    }
     /* shadow */
     pctx.fillStyle="#0007";
     pctx.beginPath();
@@ -3343,6 +3581,13 @@ function drawCharacterPreview(){
      pctx.arc(x-bodyWidth/2-6,139+tall,6,0,Math.PI*2);
      pctx.arc(x+bodyWidth/2+6,139+tall,6,0,Math.PI*2);
      pctx.fill();
+
+    if(selectedCharacter==="maya") {
+        pctx.save();
+        pctx.translate(x,44+tall);
+        pctx.scale(1.08,.88);
+        pctx.translate(-x,-(44+tall));
+    }
     /* neck */
     pctx.fillRect(
          x-7,
@@ -3409,18 +3654,72 @@ function drawCharacterPreview(){
          pctx.closePath();
          pctx.fill();
      }
-    /* eyes - smaller and human */
-    pctx.fillStyle=c.eyes;
-    pctx.beginPath();
-     pctx.ellipse(x-7,42+tall,3.5,2.8,0,0,Math.PI*2);
-     pctx.ellipse(x+7,42+tall,3.5,2.8,0,0,Math.PI*2);
-     pctx.fill();
-    /* pupils */
-    pctx.fillStyle="#111";
-    pctx.beginPath();
-     pctx.arc(x-7,42+tall,1.3,0,Math.PI*2);
-     pctx.arc(x+7,42+tall,1.3,0,Math.PI*2);
-     pctx.fill();
+    /* eyes */
+    if(selectedCharacter==="maya"){
+        /* More human-like eyes for Maya on the main page only. */
+        const eyeY=42+tall;
+
+        /* amber eye base / almond shape */
+        pctx.fillStyle=c.eyes;
+        pctx.beginPath();
+        pctx.ellipse(x-7,eyeY,4.9,3.2,0,0,Math.PI*2);
+        pctx.ellipse(x+7,eyeY,4.9,3.2,0,0,Math.PI*2);
+        pctx.fill();
+
+        /* slightly deeper amber inner eye area */
+        pctx.fillStyle="#a96816";
+        pctx.beginPath();
+        pctx.arc(x-7,eyeY,2.35,0,Math.PI*2);
+        pctx.arc(x+7,eyeY,2.35,0,Math.PI*2);
+        pctx.fill();
+
+        /* pupils */
+        pctx.fillStyle="#111";
+        pctx.beginPath();
+        pctx.arc(x-7,eyeY,1.65,0,Math.PI*2);
+        pctx.arc(x+7,eyeY,1.65,0,Math.PI*2);
+        pctx.fill();
+
+        /* upper eyelid line */
+        pctx.strokeStyle="#3a2923";
+        pctx.lineWidth=1.2;
+        pctx.beginPath();
+        pctx.moveTo(x-11.3,eyeY-1.6);
+        pctx.quadraticCurveTo(x-7,eyeY-4.4,x-2.7,eyeY-1.6);
+        pctx.moveTo(x+2.7,eyeY-1.6);
+        pctx.quadraticCurveTo(x+7,eyeY-4.4,x+11.3,eyeY-1.6);
+        pctx.stroke();
+
+        /* soft lower lid */
+        pctx.strokeStyle="rgba(120,84,69,.55)";
+        pctx.lineWidth=.9;
+        pctx.beginPath();
+        pctx.moveTo(x-10.4,eyeY+1.5);
+        pctx.quadraticCurveTo(x-7,eyeY+3.0,x-3.6,eyeY+1.5);
+        pctx.moveTo(x+3.6,eyeY+1.5);
+        pctx.quadraticCurveTo(x+7,eyeY+3.0,x+10.4,eyeY+1.5);
+        pctx.stroke();
+
+        /* highlights */
+        pctx.fillStyle="rgba(255,255,255,.9)";
+        pctx.beginPath();
+        pctx.arc(x-7.7,eyeY-0.85,.55,0,Math.PI*2);
+        pctx.arc(x+6.3,eyeY-0.85,.55,0,Math.PI*2);
+        pctx.fill();
+    }else{
+        pctx.fillStyle=c.eyes;
+        pctx.beginPath();
+        pctx.ellipse(x-7,42+tall,3.5,2.8,0,0,Math.PI*2);
+        pctx.ellipse(x+7,42+tall,3.5,2.8,0,0,Math.PI*2);
+        pctx.fill();
+
+        /* pupils */
+        pctx.fillStyle="#111";
+        pctx.beginPath();
+        pctx.arc(x-7,42+tall,1.3,0,Math.PI*2);
+        pctx.arc(x+7,42+tall,1.3,0,Math.PI*2);
+        pctx.fill();
+    }
     /* eyebrows */
     pctx.strokeStyle="#3a2923";
      pctx.lineWidth=2;
@@ -3463,6 +3762,9 @@ function drawCharacterPreview(){
          pctx.closePath();
          pctx.fill();
      }
+    if(selectedCharacter==="maya") {
+        pctx.restore();
+    }
 /* Marcus hoodie pocket */
     if(selectedCharacter==="marcus"){
         pctx.strokeStyle="#163d65";
@@ -3477,6 +3779,10 @@ function drawCharacterPreview(){
          );
          pctx.stroke();
      }
+
+    if(selectedCharacter==="maya") {
+        pctx.restore();
+    }
  }
 /* =========================================================
     MAP CREATION
@@ -4839,6 +5145,8 @@ function spawnZombie(){
 function spawnForestMaya(){
     forestMaya=null;
     forestMayaMet=false;
+    // In Forest Only mode Maya is the playable character, so do not spawn a duplicate Maya NPC.
+    if(forestOnlyMode) return;
     if(locationName!=="forest" || !player) return;
 
     const radius=characters.maya.radius;
@@ -5304,11 +5612,11 @@ function updatePlayer(){
         if(keys.a || keys.KeyA || keys.arrowup || keys.ArrowUp) laneInput-=1;
         if(keys.d || keys.KeyD || keys.arrowdown || keys.ArrowDown) laneInput+=1;
 
-        const maxForward=drivingCar.maxForwardSpeed ?? 7.8;
-        const maxReverse=drivingCar.maxReverseSpeed ?? -3.5;
-        const acceleration=drivingCar.acceleration ?? .24;
+        const maxForward=drivingCar.maxForwardSpeed ?? 10.5;
+        const maxReverse=drivingCar.maxReverseSpeed ?? -4.6;
+        const acceleration=drivingCar.acceleration ?? .34;
         const friction=drivingCar.friction ?? .945;
-        const laneSpeed=drivingCar.laneSpeed ?? 4.4;
+        const laneSpeed=drivingCar.laneSpeed ?? 5.4;
         const fuelUse=drivingCar.fuelUse ?? .00175;
 
         if(drivingCar.maxFuel==null) drivingCar.maxFuel=100;
@@ -7100,43 +7408,43 @@ function applyVehicleDimensions(c){
     // Vehicle sizes/fuel use stay class-specific, but every drivable vehicle now uses the same fast performance.
     if(kind==="supercar"){
         c.w=94; c.h=32;
-        c.maxForwardSpeed=10.2;
-        c.maxReverseSpeed=-4.0;
-        c.acceleration=.31;
+        c.maxForwardSpeed=17.0;
+        c.maxReverseSpeed=-6.5;
+        c.acceleration=.55;
         c.friction=.952;
-        c.laneSpeed=4.9;
+        c.laneSpeed=7.2;
         c.fuelUse=.00235;
     }else if(kind==="sedan"){
         c.w=88; c.h=38;
-        c.maxForwardSpeed=10.2;
-        c.maxReverseSpeed=-4.0;
-        c.acceleration=.31;
+        c.maxForwardSpeed=17.0;
+        c.maxReverseSpeed=-6.5;
+        c.acceleration=.55;
         c.friction=.952;
-        c.laneSpeed=4.9;
+        c.laneSpeed=7.2;
         c.fuelUse=.00175;
     }else if(kind==="suv"){
         c.w=96; c.h=44;
-        c.maxForwardSpeed=10.2;
-        c.maxReverseSpeed=-4.0;
-        c.acceleration=.31;
+        c.maxForwardSpeed=17.0;
+        c.maxReverseSpeed=-6.5;
+        c.acceleration=.55;
         c.friction=.952;
-        c.laneSpeed=4.9;
+        c.laneSpeed=7.2;
         c.fuelUse=.00195;
     }else if(kind==="pickup"){
         c.w=104; c.h=42;
-        c.maxForwardSpeed=10.2;
-        c.maxReverseSpeed=-4.0;
-        c.acceleration=.31;
+        c.maxForwardSpeed=17.0;
+        c.maxReverseSpeed=-6.5;
+        c.acceleration=.55;
         c.friction=.952;
-        c.laneSpeed=4.9;
+        c.laneSpeed=7.2;
         c.fuelUse=.00205;
     }else if(kind==="truck"){
         c.w=126; c.h=50;
-        c.maxForwardSpeed=10.2;
-        c.maxReverseSpeed=-4.0;
-        c.acceleration=.31;
+        c.maxForwardSpeed=17.0;
+        c.maxReverseSpeed=-6.5;
+        c.acceleration=.55;
         c.friction=.952;
-        c.laneSpeed=4.9;
+        c.laneSpeed=7.2;
         c.fuelUse=.00245;
     }
 }
@@ -7825,16 +8133,16 @@ function drawPlayer(){
     const skin="#c58c70";
     const tall=
          selectedCharacter==="maya"
-             ?0
+             ?-4
              :selectedCharacter==="marcus"
              ?-3
              :-7;
     ctx.save();
 
-    // Slightly taller/slimmer Maya gameplay proportions.
+    // Make Maya a bit taller and way slimmer in gameplay.
     if(selectedCharacter==="maya"){
         ctx.translate(x,y);
-        ctx.scale(.97,1.06);
+        ctx.scale(.88,1.15);
         ctx.translate(-x,-y);
     }else if(selectedCharacter==="marcus"){
         // Marcus is a little taller, but not dramatically so.
@@ -7904,7 +8212,7 @@ function drawPlayer(){
         ctx.fillStyle=jacket;
         /* left outer panel */
         ctx.beginPath();
-        ctx.moveTo(x-r*.78,y-r*.32+tall);
+        ctx.moveTo(x-r*.78,y-r*.45+tall);
         ctx.lineTo(x-r*.20,y-r*.08+tall);
         ctx.lineTo(x-r*.24,y+r*.68+tall);
         ctx.lineTo(x-r*.78,y+r*.68+tall);
@@ -7913,7 +8221,7 @@ function drawPlayer(){
 
         /* right outer panel */
         ctx.beginPath();
-        ctx.moveTo(x+r*.78,y-r*.32+tall);
+        ctx.moveTo(x+r*.78,y-r*.45+tall);
         ctx.lineTo(x+r*.20,y-r*.08+tall);
         ctx.lineTo(x+r*.24,y+r*.68+tall);
         ctx.lineTo(x+r*.78,y+r*.68+tall);
@@ -7971,6 +8279,13 @@ function drawPlayer(){
          Math.PI*2
      );
     ctx.fill();
+
+    if(selectedCharacter==="maya"){
+        ctx.save();
+        ctx.translate(x,y-r*1.18+tall);
+        ctx.scale(1.08,.88);
+        ctx.translate(-x,-(y-r*1.18+tall));
+    }
     /* neck */
     ctx.fillRect(
          x-r*.23,
@@ -8012,35 +8327,87 @@ function drawPlayer(){
     /* hair */
     ctx.fillStyle=c.hair;
     if(c.female){
-        /* Layered shoulder-length hair, scaled for the in-game sprite. */
-        ctx.beginPath();
-        ctx.moveTo(x-r*.68,y-r*1.40+tall);
-        ctx.quadraticCurveTo(x-r*.72,y-r*1.92+tall,x-r*.20,y-r*2.08+tall);
-        ctx.quadraticCurveTo(x+r*.18,y-r*2.20+tall,x+r*.60,y-r*1.90+tall);
-        ctx.quadraticCurveTo(x+r*.72,y-r*1.55+tall,x+r*.58,y-r*.72+tall);
-        ctx.lineTo(x+r*.30,y-r*.48+tall);
-        ctx.quadraticCurveTo(x+r*.42,y-r*1.10+tall,x+r*.28,y-r*1.55+tall);
-        ctx.quadraticCurveTo(x,y-r*1.72+tall,x-r*.28,y-r*1.57+tall);
-        ctx.quadraticCurveTo(x-r*.42,y-r*1.08+tall,x-r*.30,y-r*.46+tall);
-        ctx.lineTo(x-r*.58,y-r*.70+tall);
-        ctx.quadraticCurveTo(x-r*.72,y-r*1.08+tall,x-r*.68,y-r*1.40+tall);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(x-r*.50,y-r*1.92+tall);
-        ctx.quadraticCurveTo(x-r*.05,y-r*2.14+tall,x+r*.40,y-r*1.88+tall);
-        ctx.quadraticCurveTo(x+r*.08,y-r*1.82+tall,x-r*.22,y-r*1.55+tall);
-        ctx.closePath();
-        ctx.fill();
-        // A few soft hair strands/highlights make the in-game Maya match the newer preview.
-        ctx.strokeStyle="rgba(255,255,255,.10)";
-        ctx.lineWidth=1.2;
-        ctx.beginPath();
-        ctx.moveTo(x-r*.42,y-r*1.86+tall);
-        ctx.quadraticCurveTo(x-r*.18,y-r*1.58+tall,x-r*.25,y-r*.76+tall);
-        ctx.moveTo(x+r*.24,y-r*1.89+tall);
-        ctx.quadraticCurveTo(x+r*.44,y-r*1.50+tall,x+r*.31,y-r*.74+tall);
-        ctx.stroke();
+        if(selectedCharacter==="maya"){
+            /* Messier gameplay hair for Maya only. */
+            ctx.beginPath();
+            ctx.moveTo(x-r*.66,y-r*1.38+tall);
+            ctx.quadraticCurveTo(x-r*.78,y-r*1.90+tall,x-r*.42,y-r*2.08+tall);
+            ctx.quadraticCurveTo(x-r*.08,y-r*2.22+tall,x+r*.22,y-r*2.10+tall);
+            ctx.quadraticCurveTo(x+r*.50,y-r*2.02+tall,x+r*.66,y-r*1.72+tall);
+            ctx.quadraticCurveTo(x+r*.78,y-r*1.46+tall,x+r*.62,y-r*.66+tall);
+            ctx.quadraticCurveTo(x+r*.46,y-r*.28+tall,x+r*.18,y-r*.68+tall);
+            ctx.quadraticCurveTo(x+r*.34,y-r*.98+tall,x+r*.10,y-r*1.24+tall);
+            ctx.quadraticCurveTo(x-r*.04,y-r*1.40+tall,x-r*.20,y-r*1.22+tall);
+            ctx.quadraticCurveTo(x-r*.40,y-r*.98+tall,x-r*.24,y-r*.68+tall);
+            ctx.quadraticCurveTo(x-r*.50,y-r*.30+tall,x-r*.64,y-r*.70+tall);
+            ctx.quadraticCurveTo(x-r*.80,y-r*1.08+tall,x-r*.66,y-r*1.38+tall);
+            ctx.closePath();
+            ctx.fill();
+
+            /* Small messy tufts near the crown and sides. */
+            ctx.beginPath();
+            ctx.moveTo(x-r*.26,y-r*2.02+tall);
+            ctx.lineTo(x-r*.16,y-r*2.18+tall);
+            ctx.lineTo(x-r*.04,y-r*2.02+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x+r*.04,y-r*2.04+tall);
+            ctx.lineTo(x+r*.16,y-r*2.19+tall);
+            ctx.lineTo(x+r*.28,y-r*2.00+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x-r*.64,y-r*.86+tall);
+            ctx.lineTo(x-r*.82,y-r*.66+tall);
+            ctx.lineTo(x-r*.58,y-r*.58+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x+r*.64,y-r*.90+tall);
+            ctx.lineTo(x+r*.82,y-r*.70+tall);
+            ctx.lineTo(x+r*.58,y-r*.60+tall);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle="rgba(255,255,255,.10)";
+            ctx.lineWidth=1.2;
+            ctx.beginPath();
+            ctx.moveTo(x-r*.34,y-r*1.92+tall);
+            ctx.quadraticCurveTo(x-r*.22,y-r*1.58+tall,x-r*.30,y-r*.78+tall);
+            ctx.moveTo(x+r*.18,y-r*1.94+tall);
+            ctx.quadraticCurveTo(x+r*.38,y-r*1.52+tall,x+r*.28,y-r*.74+tall);
+            ctx.stroke();
+        }else{
+            /* Layered shoulder-length hair, scaled for the in-game sprite. */
+            ctx.beginPath();
+            ctx.moveTo(x-r*.68,y-r*1.40+tall);
+            ctx.quadraticCurveTo(x-r*.72,y-r*1.92+tall,x-r*.20,y-r*2.08+tall);
+            ctx.quadraticCurveTo(x+r*.18,y-r*2.20+tall,x+r*.60,y-r*1.90+tall);
+            ctx.quadraticCurveTo(x+r*.72,y-r*1.55+tall,x+r*.58,y-r*.72+tall);
+            ctx.lineTo(x+r*.30,y-r*.48+tall);
+            ctx.quadraticCurveTo(x+r*.42,y-r*1.10+tall,x+r*.28,y-r*1.55+tall);
+            ctx.quadraticCurveTo(x,y-r*1.72+tall,x-r*.28,y-r*1.57+tall);
+            ctx.quadraticCurveTo(x-r*.42,y-r*1.08+tall,x-r*.30,y-r*.46+tall);
+            ctx.lineTo(x-r*.58,y-r*.70+tall);
+            ctx.quadraticCurveTo(x-r*.72,y-r*1.08+tall,x-r*.68,y-r*1.40+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x-r*.50,y-r*1.92+tall);
+            ctx.quadraticCurveTo(x-r*.05,y-r*2.14+tall,x+r*.40,y-r*1.88+tall);
+            ctx.quadraticCurveTo(x+r*.08,y-r*1.82+tall,x-r*.22,y-r*1.55+tall);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle="rgba(255,255,255,.10)";
+            ctx.lineWidth=1.2;
+            ctx.beginPath();
+            ctx.moveTo(x-r*.42,y-r*1.86+tall);
+            ctx.quadraticCurveTo(x-r*.18,y-r*1.58+tall,x-r*.25,y-r*.76+tall);
+            ctx.moveTo(x+r*.24,y-r*1.89+tall);
+            ctx.quadraticCurveTo(x+r*.44,y-r*1.50+tall,x+r*.31,y-r*.74+tall);
+            ctx.stroke();
+        }
     }else{
         ctx.beginPath();
         ctx.moveTo(
@@ -8073,45 +8440,106 @@ function drawPlayer(){
         ctx.fill();
      }
     /* eyes */
-    ctx.fillStyle=c.eyes;
-    ctx.beginPath();
-    ctx.ellipse(
-         x-r*.27,
-         y-r*1.39+tall,
-         3.4,
-         2.5,
-         0,
-         0,
-         Math.PI*2
-     );
-    ctx.ellipse(
-         x+r*.15,
-         y-r*1.39+tall,
-         3.4,
-         2.5,
-         0,
-         0,
-         Math.PI*2
-     );
-    ctx.fill();
-    /* pupils */
-    ctx.fillStyle="#111";
-    ctx.beginPath();
-    ctx.arc(
-         x-r*.27,
-         y-r*1.39+tall,
-         1.2,
-         0,
-         Math.PI*2
-     );
-    ctx.arc(
-         x+r*.15,
-         y-r*1.39+tall,
-         1.2,
-         0,
-         Math.PI*2
-     );
-    ctx.fill();
+    if(selectedCharacter==="maya"){
+        const eyeY=y-r*1.38+tall;
+        /* Same almond-like eye shape, with enough spacing that the eyes never touch. */
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(x-r*.42,y-r*1.59+tall,r*.84,r*.70,r*.22);
+        ctx.clip();
+
+        const leftEyeX=x-r*.25;
+        const rightEyeX=x+r*.15;
+
+        /* amber eye base */
+        ctx.fillStyle=c.eyes;
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX,eyeY,2.55,1.66,0,0,Math.PI*2);
+        ctx.ellipse(rightEyeX,eyeY,2.55,1.66,0,0,Math.PI*2);
+        ctx.fill();
+
+        /* slightly deeper amber inner eye area */
+        ctx.fillStyle="#a96816";
+        ctx.beginPath();
+        ctx.arc(leftEyeX,eyeY,1.28,0,Math.PI*2);
+        ctx.arc(rightEyeX,eyeY,1.28,0,Math.PI*2);
+        ctx.fill();
+
+        /* black pupils */
+        ctx.fillStyle="#111";
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX,eyeY,1.00,.94,0,0,Math.PI*2);
+        ctx.ellipse(rightEyeX,eyeY,1.00,.94,0,0,Math.PI*2);
+        ctx.fill();
+
+        /* upper eyelid line */
+        ctx.strokeStyle="#3a2923";
+        ctx.lineWidth=1.0;
+        ctx.beginPath();
+        ctx.moveTo(leftEyeX-2.20,eyeY-r*.09);
+        ctx.quadraticCurveTo(leftEyeX,eyeY-r*.27,leftEyeX+2.20,eyeY-r*.09);
+        ctx.moveTo(rightEyeX-2.20,eyeY-r*.09);
+        ctx.quadraticCurveTo(rightEyeX,eyeY-r*.27,rightEyeX+2.20,eyeY-r*.09);
+        ctx.stroke();
+
+        /* soft lower lid */
+        ctx.strokeStyle="rgba(120,84,69,.55)";
+        ctx.lineWidth=.70;
+        ctx.beginPath();
+        ctx.moveTo(leftEyeX-1.85,eyeY+r*.08);
+        ctx.quadraticCurveTo(leftEyeX,eyeY+r*.15,leftEyeX+1.85,eyeY+r*.08);
+        ctx.moveTo(rightEyeX-1.85,eyeY+r*.08);
+        ctx.quadraticCurveTo(rightEyeX,eyeY+r*.15,rightEyeX+1.85,eyeY+r*.08);
+        ctx.stroke();
+
+        /* highlights */
+        ctx.fillStyle="rgba(255,255,255,.85)";
+        ctx.beginPath();
+        ctx.arc(leftEyeX-.35,eyeY-.30,.22,0,Math.PI*2);
+        ctx.arc(rightEyeX-.35,eyeY-.30,.22,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+    }else{
+        ctx.fillStyle=c.eyes;
+        ctx.beginPath();
+        ctx.ellipse(
+             x-r*.27,
+             y-r*1.39+tall,
+             3.4,
+             2.5,
+             0,
+             0,
+             Math.PI*2
+         );
+        ctx.ellipse(
+             x+r*.15,
+             y-r*1.39+tall,
+             3.4,
+             2.5,
+             0,
+             0,
+             Math.PI*2
+         );
+        ctx.fill();
+        /* pupils */
+        ctx.fillStyle="#111";
+        ctx.beginPath();
+        ctx.arc(
+             x-r*.27,
+             y-r*1.39+tall,
+             1.2,
+             0,
+             Math.PI*2
+         );
+        ctx.arc(
+             x+r*.15,
+             y-r*1.39+tall,
+             1.2,
+             0,
+             Math.PI*2
+         );
+        ctx.fill();
+    }
     /* eyebrows */
     ctx.strokeStyle="#362923";
      ctx.lineWidth=2;
@@ -8137,18 +8565,25 @@ function drawPlayer(){
     ctx.strokeStyle="#865c4c";
      ctx.lineWidth=1.5;
     ctx.beginPath();
-    ctx.moveTo(
-         x,
-         y-r*1.29+tall
-     );
-    ctx.lineTo(
-         x-1,
-         y-r*1.04+tall
-     );
-    ctx.lineTo(
-         x+3,
-         y-r*1.03+tall
-     );
+    if(selectedCharacter==="maya"){
+        /* Maya Forest nose: moved slightly upward. */
+        ctx.moveTo(x,y-r*1.34+tall);
+        ctx.lineTo(x-1,y-r*1.09+tall);
+        ctx.lineTo(x+3,y-r*1.08+tall);
+    }else{
+        ctx.moveTo(
+             x,
+             y-r*1.29+tall
+         );
+        ctx.lineTo(
+             x-1,
+             y-r*1.04+tall
+         );
+        ctx.lineTo(
+             x+3,
+             y-r*1.03+tall
+         );
+    }
     ctx.stroke();
     /* mouth */
     ctx.strokeStyle="#653e39";
@@ -8196,6 +8631,9 @@ function drawPlayer(){
         ctx.closePath();
         ctx.fill();
      }
+    if(selectedCharacter==="maya"){
+        ctx.restore();
+    }
     /* Marcus blue hoodie detail */
     if(selectedCharacter==="marcus"){
         ctx.strokeStyle="#153e68";
@@ -8227,7 +8665,7 @@ function drawWeapon(){
     // Keep the weapon centered at each character's shoulder height.
     const characterTall=
          selectedCharacter==="maya"
-             ?0
+             ?-4
              :selectedCharacter==="marcus"
              ?-3
              :-7;
@@ -8239,7 +8677,7 @@ function drawWeapon(){
     // Scale both weapons to match each character's gameplay proportions.
     const scale=
          selectedCharacter==="maya"
-             ?.68
+             ?.62
              :selectedCharacter==="marcus"
              ?.75
              :.72;
@@ -8755,6 +9193,16 @@ function completeCurrentStoryBiome(){
     if(storyTransitioning) return;
     storyTransitioning=true;
 
+    // FOREST ONLY mode never leaves the forest. Recycle the forest run endlessly.
+    if(forestOnlyMode){
+        storyChapterIndex=STORY_CHAPTERS.length-1;
+        storyChapterTravel=0;
+        if(selectedCharacter!=="maya") setStoryCharacter("maya",true);
+        storyTransitioning=false;
+        showMessage("MAYA — FOREST RUN CONTINUES");
+        return;
+    }
+
     if(storyChapterIndex>=STORY_CHAPTERS.length-1){
         // The Military Base is the ending after the final Forest chapter.
         startMilitaryBaseEnding();
@@ -8970,12 +9418,54 @@ function startIntroCutscene(){
 }
 
 function startGame(){
+    forestOnlyMode=false;
     const finalMenuBtn=document.getElementById("endingMainMenuBtn");
     if(finalMenuBtn) finalMenuBtn.classList.remove("visible");
     const endingBtn=document.getElementById("endingMainMenuBtn");
     if(endingBtn) endingBtn.classList.remove("visible");
     pendingStoryLoad=null;
     startIntroCutscene();
+}
+
+function startForestOnly(){
+    forestOnlyMode=true;
+    selectedCharacter="maya";
+    document.querySelectorAll(".charButtons button")
+        .forEach(button=>button.classList.toggle("active",button.id==="maya"));
+    document.getElementById("charName").textContent=characters.maya.name;
+    drawCharacterPreview();
+    const finalMenuBtn=document.getElementById("endingMainMenuBtn");
+    if(finalMenuBtn) finalMenuBtn.classList.remove("visible");
+    const endingBtn=document.getElementById("endingMainMenuBtn");
+    if(endingBtn) endingBtn.classList.remove("visible");
+    pendingStoryLoad=null;
+    startIntroCutscene();
+}
+
+function startLastSceneOnly(){
+    forestOnlyMode=false;
+    pendingStoryLoad=null;
+    cutsceneRunning=false;
+    clearCutsceneTimers();
+
+    const intro=document.getElementById("introCutscene");
+    if(intro){
+        intro.classList.remove("active");
+        intro.setAttribute("aria-hidden","true");
+    }
+
+    const endingBtn=document.getElementById("endingMainMenuBtn");
+    if(endingBtn) endingBtn.classList.remove("visible");
+
+    // Keep Maya selected in the UI, since the last scene prominently features her.
+    selectedCharacter="maya";
+    document.querySelectorAll(".charButtons button")
+        .forEach(button=>button.classList.toggle("active",button.id==="maya"));
+    const charName=document.getElementById("charName");
+    if(charName) charName.textContent=characters.maya.name;
+    drawCharacterPreview();
+
+    startMilitaryBaseEnding();
 }
 
 const cutsceneSkip=document.getElementById("cutsceneSkip");
@@ -9038,13 +9528,14 @@ function beginGame(){
         grenadeProjectiles=[];
         explosionEffects=[];
         fireHeld=false;
-        storyChapterIndex=0;
+        storyChapterIndex=forestOnlyMode ? STORY_CHAPTERS.length-1 : 0;
         storyChapterTravel=0;
         storyTotalTravel=0;
 
-        const first=STORY_CHAPTERS[0];
+        const first=STORY_CHAPTERS[storyChapterIndex];
         locationName=first.location;
-        selectedCharacter=first.character;
+        // Forest Only is a dedicated Maya mode. Normal story chapters keep their original characters.
+        selectedCharacter=forestOnlyMode ? "maya" : first.character;
 
         const c=characters[selectedCharacter];
         player={
